@@ -15,11 +15,12 @@ function localSeed(){
 }
 function cachedHeadshots(){try{return JSON.parse(localStorage.getItem(headshotCacheKey)||'{}')}catch{return {}}}
 function saveHeadshots(map){try{localStorage.setItem(headshotCacheKey,JSON.stringify(map))}catch{}}
+function builtInHeadshots(){return window.QB_HEADSHOTS||{}}
 function parseCSV(text){
   const rows=[];let row=[],cell='',quoted=false;
   for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(quoted){if(c==='"'&&n==='"'){cell+='"';i++;}else if(c==='"')quoted=false;else cell+=c}else{if(c==='"')quoted=true;else if(c===','){row.push(cell);cell=''}else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell=''}else if(c!=='\r')cell+=c}}if(cell.length||row.length){row.push(cell);rows.push(row)}return rows;}
 async function resolveHeadshots(players){
-  const out=cachedHeadshots();
+  const out={...builtInHeadshots(),...cachedHeadshots()};
   const missing=players.filter(p=>!p.headshot && !out[p.name] && !out[aliases[p.name]||p.name]);
   if(!missing.length)return players.map(p=>({...p,headshot:p.headshot||out[p.name]||out[aliases[p.name]||p.name]||''}));
   try{
