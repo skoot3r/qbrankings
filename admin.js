@@ -5,10 +5,8 @@
     const session = await qbAuthRequired();
     if(!session) return;
 
-    document.body.style.visibility='visible';
-
     if(window.QB_DB){
-      const {data,error}=await QB_DB.from('qb_editions').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle();
+      const {data,error}=await window.QB_DB.from('qb_editions').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle();
       if(!error && data) d={week:data.week,date:data.publish_date,players:data.players};
     }
     document.getElementById('week').value=d.week||1;
@@ -48,18 +46,16 @@
     d.date=document.getElementById('date').value||new Date().toISOString().slice(0,10);
     const payload={week:d.week,publish_date:d.date,players:d.players};
     if(window.QB_DB){
-      const {error}=await QB_DB.from('qb_editions').insert(payload);
+      const {error}=await window.QB_DB.from('qb_editions').insert(payload);
       if(error){alert(error.message);return;}
     } else {
-      let h=JSON.parse(localStorage.getItem('qb_rankings_history')||'[]');
-      if(localStorage.getItem('qb_rankings_current'))h.push(JSON.parse(localStorage.getItem('qb_rankings_current')));
-      localStorage.setItem('qb_rankings_history',JSON.stringify(h));
-      localStorage.setItem('qb_rankings_current',JSON.stringify(d));
+      alert('Supabase is not connected.');
+      return;
     }
     alert('Published Week '+d.week+'!');
     location.href='index.html';
   };
 
-  document.getElementById('logout').onclick=window.qbLogout;
+  document.getElementById('logout').addEventListener('click',window.qbLogout);
   init();
 })();

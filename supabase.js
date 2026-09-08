@@ -1,27 +1,42 @@
 (function(){
-  const configured = window.QB_CONFIG &&
-    !window.QB_CONFIG.supabaseUrl.startsWith('YOUR_') &&
-    !window.QB_CONFIG.supabaseAnonKey.startsWith('YOUR_');
+  function isConfigured(){
+    return !!(window.QB_CONFIG &&
+      typeof window.QB_CONFIG.supabaseUrl === 'string' &&
+      typeof window.QB_CONFIG.supabaseAnonKey === 'string' &&
+      !window.QB_CONFIG.supabaseUrl.startsWith('YOUR_') &&
+      !window.QB_CONFIG.supabaseAnonKey.startsWith('YOUR_'));
+  }
 
-  window.QB_DB = configured
-    ? window.supabase.createClient(QB_CONFIG.supabaseUrl, QB_CONFIG.supabaseAnonKey)
-    : null;
+  window.QB_DB = null;
+
+  try {
+    if(isConfigured() && window.supabase && typeof window.supabase.createClient === 'function') {
+      window.QB_DB = window.supabase.createClient(
+        window.QB_CONFIG.supabaseUrl,
+        window.QB_CONFIG.supabaseAnonKey
+      );
+    }
+  } catch(err) {
+    console.error('Supabase client initialization failed:', err);
+    window.QB_DB = null;
+  }
 
   window.qbAuthRequired = async function(){
-    if(!QB_DB){
-      window.location.replace('login.html');
+    if(!window.QB_DB){
+      window.location.replace('login.html?error=connection');
       return null;
     }
     try {
-      const { data, error } = await QB_DB.auth.getSession();
-      if(error || !data.session){
+      const { data, error } = await window.QB_DB.auth.getSession();
+      if(error) throw error;
+      if(!data || !data.session){
         window.location.replace('login.html');
         return null;
       }
       return data.session;
     } catch(err) {
       console.error('Auth check failed:', err);
-      window.location.replace('login.html');
+      window.location.replace('login.html?error=auth');
       return null;
     }
   };
@@ -31,25 +46,14 @@
     if(button) { button.disabled = true; button.textContent = 'Logging out…'; }
 
     try {
-      if(!QB_DB){
-        window.location.replace('login.html');
-        return;
-      }
-
-      const { error } = await QB_DB.auth.signOut();
+      if(!window.QB_DB) throw new Error('Supabase is not connected.');
+      const { error } = await window.QB_DB.auth.signOut({ scope: 'local' });
       if(error) throw error;
-
-      // Verify the local session is actually gone before navigating away.
-      const { data } = await QB_DB.auth.getSession();
-      if(data && data.session){
-        throw new Error('The session is still active. Please try again.');
-      }
-
       window.location.replace('login.html?loggedout=1');
     } catch(err) {
       console.error('Logout failed:', err);
       if(button) { button.disabled = false; button.textContent = 'Log out'; }
-      alert('Logout failed: ' + (err?.message || err));
+      alert('Logout failed: ' + (err && err.message ? err.message : String(err)));
     }
   };
 })();
