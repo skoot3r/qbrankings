@@ -13,7 +13,8 @@
     if(isConfigured() && window.supabase && typeof window.supabase.createClient === 'function') {
       window.QB_DB = window.supabase.createClient(
         window.QB_CONFIG.supabaseUrl,
-        window.QB_CONFIG.supabaseAnonKey
+        window.QB_CONFIG.supabaseAnonKey,
+        { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
       );
     }
   } catch(err) {
@@ -22,7 +23,9 @@
   }
 
   window.qbAuthRequired = async function(){
+    document.body.classList.add('auth-checking');
     if(!window.QB_DB){
+      document.body.classList.add('auth-denied');
       window.location.replace('login.html?error=connection');
       return null;
     }
@@ -30,18 +33,22 @@
       const { data, error } = await window.QB_DB.auth.getSession();
       if(error) throw error;
       if(!data || !data.session){
+        document.body.classList.add('auth-denied');
         window.location.replace('login.html');
         return null;
       }
+      document.body.classList.remove('auth-checking');
       return data.session;
     } catch(err) {
       console.error('Auth check failed:', err);
+      document.body.classList.add('auth-denied');
       window.location.replace('login.html?error=auth');
       return null;
     }
   };
 
-  window.qbLogout = async function(){
+  window.qbLogout = async function(e){
+    if(e) e.preventDefault();
     const button = document.getElementById('logout');
     if(button) { button.disabled = true; button.textContent = 'Logging out…'; }
 
@@ -49,6 +56,17 @@
       if(!window.QB_DB) throw new Error('Supabase is not connected.');
       const { error } = await window.QB_DB.auth.signOut({ scope: 'local' });
       if(error) throw error;
+
+      // Verify the local session is actually gone before redirecting.
+      const { data } = await window.QB_DB.auth.getSession();
+      if(data && data.session){
+        // Remove this project's persisted browser session as a last-resort cleanup.
+        try {
+          const ref = new URL(window.QB_CONFIG.supabaseUrl).hostname.split('.')[0];
+          localStorage.removeItem('sb-' + ref + '-auth-token');
+        } catch(_) {}
+      }
+
       window.location.replace('login.html?loggedout=1');
     } catch(err) {
       console.error('Logout failed:', err);

@@ -5,6 +5,9 @@
     const session = await qbAuthRequired();
     if(!session) return;
 
+    const logout = document.getElementById('logout');
+    if(logout) logout.onclick = window.qbLogout;
+
     if(window.QB_DB){
       const {data,error}=await window.QB_DB.from('qb_editions').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle();
       if(!error && data) d={week:data.week,date:data.publish_date,players:data.players};
@@ -42,20 +45,18 @@
   };
 
   document.getElementById('publish').onclick=async()=>{
+    const session = await window.QB_DB?.auth.getSession();
+    if(!session?.data?.session){ window.location.replace('login.html'); return; }
     d.week=+document.getElementById('week').value;
     d.date=document.getElementById('date').value||new Date().toISOString().slice(0,10);
     const payload={week:d.week,publish_date:d.date,players:d.players};
     if(window.QB_DB){
       const {error}=await window.QB_DB.from('qb_editions').insert(payload);
       if(error){alert(error.message);return;}
-    } else {
-      alert('Supabase is not connected.');
-      return;
-    }
+    } else { alert('Supabase is not connected.'); return; }
     alert('Published Week '+d.week+'!');
     location.href='index.html';
   };
 
-  document.getElementById('logout').addEventListener('click',window.qbLogout);
   init();
 })();

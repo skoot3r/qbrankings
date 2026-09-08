@@ -11,7 +11,6 @@
   }
 
   const client=window.supabase.createClient(QB_CONFIG.supabaseUrl,QB_CONFIG.supabaseAnonKey);
-
   const params=new URLSearchParams(location.search);
   if(params.get('loggedout')==='1') msg.textContent='You have been logged out.';
   if(params.get('error')) msg.textContent='Please sign in to access the private editor.';
