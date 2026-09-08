@@ -5,7 +5,15 @@ const aliases={
 };
 function slug(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'qb';}
 function normalizePlayers(players){
-  return (players||[]).map((p,i)=>({...p,id:p.id||slug((p.team||'qb')+'-'+p.name+'-'+i),name:p.name||'Unnamed QB',team:p.team||'',note:p.note||'',headshot:p.headshot||''}));
+  return (players||[]).map((p,i)=>{
+    const stats=p.stats||{};
+    return {...p,id:p.id||slug((p.team||'qb')+'-'+p.name+'-'+i),name:p.name||'Unnamed QB',team:p.team||'',note:p.note||'',headshot:p.headshot||'',stats:{
+      passYards:Number.isFinite(Number(stats.passYards))?Number(stats.passYards):0,
+      td:Number.isFinite(Number(stats.td))?Number(stats.td):0,
+      int:Number.isFinite(Number(stats.int))?Number(stats.int):0,
+      compPct:Number.isFinite(Number(stats.compPct))?Number(stats.compPct):0
+    }};
+  });
 }
 function normalizeEdition(d){return {...d,players:normalizePlayers(d.players)};}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -59,7 +67,7 @@ window.renderHome=async function(){
   document.getElementById('updated').textContent='Updated '+new Date(d.date+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   function draw(){
     const q=(document.getElementById('search').value||'').toLowerCase(),f=document.getElementById('filter').value;
-    cards.innerHTML=d.players.map((p,i)=>{const old=prev?prev.players.findIndex(x=>(x.id&&p.id&&x.id===p.id)||x.name===p.name):-1;const m=old<0?0:old-i,cls=m>0?'up':m<0?'down':'same',label=m>0?'▲ '+m:m<0?'▼ '+Math.abs(m):'—';return {...p,i,m,cls,label};}).filter(x=>(!q||x.name.toLowerCase().includes(q))&&(f==='all'||(f==='up'&&x.m>0)||(f==='down'&&x.m<0)||(f==='same'&&!x.m))).map(x=>`<article class="card"><div class="rank">${x.i+1}</div><div class="player-identity">${x.headshot?`<img class="qb-headshot" src="${esc(x.headshot)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('headshot-missing');this.remove()">`:''}<div><div class="name">${esc(x.name)}</div><div class="team">${esc(x.team)}</div></div></div><div class="movement ${x.cls}">${x.label}</div><div class="note">${esc(x.note||'')}</div></article>`).join('');
+    cards.innerHTML=d.players.map((p,i)=>{const old=prev?prev.players.findIndex(x=>(x.id&&p.id&&x.id===p.id)||x.name===p.name):-1;const m=old<0?0:old-i,cls=m>0?'up':m<0?'down':'same',label=m>0?'▲ '+m:m<0?'▼ '+Math.abs(m):'—';return {...p,i,m,cls,label};}).filter(x=>(!q||x.name.toLowerCase().includes(q))&&(f==='all'||(f==='up'&&x.m>0)||(f==='down'&&x.m<0)||(f==='same'&&!x.m))).map(x=>`<article class="card"><div class="rank">${x.i+1}</div><div class="player-identity">${x.headshot?`<img class="qb-headshot" src="${esc(x.headshot)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('headshot-missing');this.remove()">`:''}<div class="player-copy"><div class="name-line"><div class="name">${esc(x.name)}</div><div class="qb-stats"><span><b>${esc(x.stats?.passYards??0)}</b> YDS</span><span><b>${esc(x.stats?.td??0)}</b> TD</span><span><b>${esc(x.stats?.int??0)}</b> INT</span><span><b>${esc(Number(x.stats?.compPct??0).toFixed(1))}%</b> CMP</span></div></div><div class="team">${esc(x.team)}</div></div></div><div class="movement ${x.cls}">${x.label}</div><div class="note">${esc(x.note||'')}</div></article>`).join('');
   }
   document.getElementById('search').oninput=draw;document.getElementById('filter').onchange=draw;draw();
 };
@@ -73,7 +81,7 @@ window.renderHistory=async function(){
   if(!weeks.length){el.innerHTML='<p class="hint">No previous editions yet. Publish your first week from the Editor.</p>';return;}
   el.innerHTML=`<div class="history-tabs" role="tablist" aria-label="Weekly rankings">${weeks.map((d,i)=>`<button class="history-tab ${i===weeks.length-1?'active':''}" type="button" role="tab" aria-selected="${i===weeks.length-1}" data-week="${d.week}">Week ${d.week}</button>`).join('')}</div><div class="history-panel" id="historyPanel"></div>`;
   const panel=document.getElementById('historyPanel');
-  function showWeek(week){const d=byWeek.get(Number(week));if(!d)return;const players=d.players||[];const dateValue=d.publish_date||d.date;const date=dateValue?new Date(dateValue+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';panel.innerHTML=`<div class="history-heading"><div><p class="eyebrow">ARCHIVED BOARD</p><h2>Week ${d.week}</h2></div><span class="history-date">${date?'Published '+date:''}</span></div><div class="history-rankings">${players.map((p,i)=>`<article class="history-rank-row"><div class="history-rank">${i+1}</div><div class="history-player">${p.headshot?`<img class="history-headshot" src="${esc(p.headshot)}" alt="" loading="lazy">`:''}<div><strong>${esc(p.name)}</strong><span>${esc(p.team||'')}</span></div></div>${p.note?`<div class="history-note">${esc(p.note)}</div>`:''}</article>`).join('')}</div>`;el.querySelectorAll('.history-tab').forEach(tab=>{const active=Number(tab.dataset.week)===Number(week);tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active))})}
+  function showWeek(week){const d=byWeek.get(Number(week));if(!d)return;const players=d.players||[];const dateValue=d.publish_date||d.date;const date=dateValue?new Date(dateValue+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';panel.innerHTML=`<div class="history-heading"><div><p class="eyebrow">ARCHIVED BOARD</p><h2>Week ${d.week}</h2></div><span class="history-date">${date?'Published '+date:''}</span></div><div class="history-rankings">${players.map((p,i)=>`<article class="history-rank-row"><div class="history-rank">${i+1}</div><div class="history-player">${p.headshot?`<img class="history-headshot" src="${esc(p.headshot)}" alt="" loading="lazy">`:''}<div class="history-player-copy"><div class="history-name-line"><strong>${esc(p.name)}</strong><div class="qb-stats history-stats"><span><b>${esc(p.stats?.passYards??0)}</b> YDS</span><span><b>${esc(p.stats?.td??0)}</b> TD</span><span><b>${esc(p.stats?.int??0)}</b> INT</span><span><b>${esc(Number(p.stats?.compPct??0).toFixed(1))}%</b> CMP</span></div></div><span>${esc(p.team||'')}</span></div></div>${p.note?`<div class="history-note">${esc(p.note)}</div>`:''}</article>`).join('')}</div>`;el.querySelectorAll('.history-tab').forEach(tab=>{const active=Number(tab.dataset.week)===Number(week);tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active))})}
   el.querySelectorAll('.history-tab').forEach(tab=>tab.onclick=()=>showWeek(tab.dataset.week));showWeek(weeks[weeks.length-1].week);
 };
 if(document.getElementById('cards'))window.renderHome();if(document.getElementById('history'))window.renderHistory();

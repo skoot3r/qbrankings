@@ -2,7 +2,7 @@
   const currentKey='qb_rankings_current';
   let d=JSON.parse(localStorage.getItem(currentKey)||JSON.stringify(QB_SEED)),selected=0,dragFrom=null;
   const makeId=()=>('qb-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8));
-  const clean=()=>{d.players=(d.players||[]).map((p,i)=>({...p,id:p.id||('qb-'+String((p.team||'qb')+'-'+(p.name||'qb')).toLowerCase().replace(/[^a-z0-9]+/g,'-')),name:p.name||'Unnamed QB',team:p.team||'',note:p.note||'',headshot:p.headshot||''}));if(selected>=d.players.length)selected=Math.max(0,d.players.length-1)};
+  const clean=()=>{d.players=(d.players||[]).map((p,i)=>{const stats=p.stats||{};return {...p,id:p.id||('qb-'+String((p.team||'qb')+'-'+(p.name||'qb')).toLowerCase().replace(/[^a-z0-9]+/g,'-')),name:p.name||'Unnamed QB',team:p.team||'',note:p.note||'',headshot:p.headshot||'',stats:{passYards:Number.isFinite(Number(stats.passYards))?Number(stats.passYards):0,td:Number.isFinite(Number(stats.td))?Number(stats.td):0,int:Number.isFinite(Number(stats.int))?Number(stats.int):0,compPct:Number.isFinite(Number(stats.compPct))?Number(stats.compPct):0}}});if(selected>=d.players.length)selected=Math.max(0,d.players.length-1)};
 
   async function init(){
     const session=await qbAuthRequired();if(!session)return;
@@ -37,13 +37,13 @@
   }
 
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  document.getElementById('addQB').onclick=()=>{if(d.players.length>=32){alert('The board is limited to 32 quarterbacks. Remove a QB before adding another.');return}d.players.push({id:makeId(),name:'New QB',team:'',note:'',headshot:''});selected=d.players.length-1;render();const last=document.querySelector('#editorRows .editor-row:last-child .player-name-input');if(last){last.focus();last.select()}};
+  document.getElementById('addQB').onclick=()=>{if(d.players.length>=32){alert('The board is limited to 32 quarterbacks. Remove a QB before adding another.');return}d.players.push({id:makeId(),name:'New QB',team:'',note:'',headshot:'',stats:{passYards:0,td:0,int:0,compPct:0}});selected=d.players.length-1;render();const last=document.querySelector('#editorRows .editor-row:last-child .player-name-input');if(last){last.focus();last.select()}};
   document.getElementById('reset').onclick=()=>{if(!confirm('Reset the editor to the original Top 32 seed? This does not delete anything from Supabase.'))return;d=JSON.parse(JSON.stringify(QB_SEED));selected=0;render()};
   document.getElementById('saveThought').onclick=()=>{if(!d.players[selected])return;d.players[selected].note=document.getElementById('thoughts').value;render()};
   document.getElementById('saveMeta').onclick=()=>{if(!d.players[selected])return;d.players[selected].name=document.getElementById('metaName').value.trim()||'Unnamed QB';d.players[selected].team=document.getElementById('metaTeam').value.trim().toUpperCase();d.players[selected].headshot=document.getElementById('metaHeadshot').value.trim();render();alert('QB details saved.')};
   document.getElementById('editorRows').addEventListener('click',()=>{});
   const originalRender=render;
-  function syncMeta(){const p=d.players[selected];document.getElementById('metaName').value=p?.name||'';document.getElementById('metaTeam').value=p?.team||'';document.getElementById('metaHeadshot').value=p?.headshot||''}
+  function syncMeta(){const p=d.players[selected],stats=p?.stats||{};document.getElementById('metaName').value=p?.name||'';document.getElementById('metaTeam').value=p?.team||'';document.getElementById('metaHeadshot').value=p?.headshot||'';document.getElementById('statPassYards').value=stats.passYards??0;document.getElementById('statTD').value=stats.td??0;document.getElementById('statINT').value=stats.int??0;document.getElementById('statCompPct').value=stats.compPct??0}
   const observer=new MutationObserver(syncMeta);observer.observe(document.getElementById('editorRows'),{childList:true});
   document.getElementById('publish').onclick=async()=>{
     const session=await window.QB_DB?.auth.getSession();if(!session?.data?.session){window.location.replace('login.html');return}

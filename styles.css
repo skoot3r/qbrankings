@@ -66,3 +66,24 @@ body.auth-denied > * { visibility: hidden !important; }
   .history-player span{font-size:13px}
   .history-note{grid-column:2;font-size:14px}
 }
+
+/* v10: current-season passing stats */
+.player-copy{min-width:0}
+.name-line{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.qb-stats{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.02em}
+.qb-stats span{white-space:nowrap}
+.qb-stats b{color:var(--text);font-size:11px}
+.history-name-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.history-player-copy{min-width:0}
+.history-stats{font-size:9px}
+.history-stats b{font-size:10px}
+.stat-editor{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 18px}
+.stat-editor label{display:grid;gap:6px;color:var(--muted);font-size:12px;font-weight:800}
+.stat-editor input{width:100%}
+@media(max-width:760px){
+  .name-line,.history-name-line{display:block}
+  .qb-stats{margin-top:5px;gap:6px;font-size:9px}
+  .qb-stats b{font-size:10px}
+  .history-stats{margin-top:4px}
+  .stat-editor{grid-template-columns:1fr 1fr}
+}
