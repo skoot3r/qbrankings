@@ -1,18 +1,15 @@
 # QB Rankings
 
-A clean weekly Top 32 QB rankings site with a public rankings board, secure Supabase login, private editor, weekly publishing, history, and light/dark themes.
+Clean NFL quarterback rankings site with Supabase-backed publishing and weekly history.
+
+## v7 changes
+- Key-icon login button in the public header.
+- Private editor supports renaming QBs, adding QBs, removing QBs, and editing team/headshot metadata.
+- QB records use stable IDs so renaming a QB does not break movement/history matching.
+- Headshot support is built into player records. Existing records can use a headshot URL from the editor; transparent PNG/WebP assets are recommended.
+- Weekly history preserves the published snapshot, including the player name and headshot metadata that existed when the week was published.
 
 ## Supabase
-The site is configured for the supplied Supabase project. `supabase.sql` must be run once in SQL Editor.
+Keep the existing `config.js` values from the working project. Do not replace them with placeholders.
 
-Create your editor account in Supabase: Authentication → Users → Add user. Use an email/password you control.
-
-## Vercel
-Upload this folder as a Vercel project. No build command is required; it is a static site.
-
-Public page: `/index.html`
-Login: `/login.html`
-Editor: `/admin.html`
-History: `/history.html`
-
-The browser only contains the Supabase publishable key. Do not put a service-role/secret key in the site.
+Run `supabase.sql` in the existing project if the table/policies have not already been created.
