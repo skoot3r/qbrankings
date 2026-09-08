@@ -1,6 +1,6 @@
-// Supabase configuration. Create a project at https://supabase.com and paste these values here.
-// The anon key is safe to expose in a browser when Row Level Security is configured correctly.
+// Supabase public browser configuration.
+// The publishable/anon key is safe to expose in browser code when RLS is configured.
 window.QB_CONFIG = {
-  supabaseUrl: 'YOUR_SUPABASE_URL',
-  supabaseAnonKey: 'YOUR_SUPABASE_ANON_KEY'
+  supabaseUrl: 'https://opemihxgednohfrkvgov.supabase.co',
+  supabaseAnonKey: 'sb_publishable_nV-NdQ4bVoI7JDaMmaa19Q_lXwExP-q'
 };
