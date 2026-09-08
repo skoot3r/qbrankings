@@ -20,9 +20,9 @@ function parseCSV(text){
   const rows=[];let row=[],cell='',quoted=false;
   for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(quoted){if(c==='"'&&n==='"'){cell+='"';i++;}else if(c==='"')quoted=false;else cell+=c}else{if(c==='"')quoted=true;else if(c===','){row.push(cell);cell=''}else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell=''}else if(c!=='\r')cell+=c}}if(cell.length||row.length){row.push(cell);rows.push(row)}return rows;}
 async function resolveHeadshots(players){
-  const out={...builtInHeadshots(),...cachedHeadshots()};
-  const missing=players.filter(p=>!p.headshot && !out[p.name] && !out[aliases[p.name]||p.name]);
-  if(!missing.length)return players.map(p=>({...p,headshot:p.headshot||out[p.name]||out[aliases[p.name]||p.name]||''}));
+  const out={...cachedHeadshots(),...builtInHeadshots()};
+  const missing=players.filter(p=>!out[aliases[p.name]||p.name] && !out[p.name] && !p.headshot);
+  if(!missing.length)return players.map(p=>{const canonical=aliases[p.name]||p.name;return {...p,headshot:out[canonical]||out[p.name]||p.headshot||''};});
   try{
     const res=await fetch('https://github.com/nflverse/nflverse-data/releases/download/players/players.csv',{cache:'force-cache'});
     if(!res.ok)throw new Error('headshot data request failed');
@@ -32,8 +32,8 @@ async function resolveHeadshots(players){
     const wanted=new Set(players.map(p=>(aliases[p.name]||p.name).toLowerCase()));
     for(let i=1;i<rows.length;i++){const name=(rows[i][nameIx]||'').trim(),shot=(rows[i][shotIx]||'').trim();if(name&&shot&&wanted.has(name.toLowerCase()))out[name]=shot;}
     saveHeadshots(out);
-    return players.map(p=>({...p,headshot:p.headshot||out[p.name]||out[aliases[p.name]||p.name]||''}));
-  }catch(err){console.warn('Could not load NFL headshots:',err);return players.map(p=>({...p,headshot:p.headshot||out[p.name]||out[aliases[p.name]||p.name]||''}));}
+    return players.map(p=>{const canonical=aliases[p.name]||p.name;return {...p,headshot:out[canonical]||out[p.name]||p.headshot||''};});
+  }catch(err){console.warn('Could not load NFL headshots:',err);return players.map(p=>{const canonical=aliases[p.name]||p.name;return {...p,headshot:out[canonical]||out[p.name]||p.headshot||''};});}
 }
 window.resolveQBHeadshots=resolveHeadshots;
 async function loadLatest(){
