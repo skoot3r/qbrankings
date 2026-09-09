@@ -126,3 +126,6 @@ body.auth-denied > * { visibility: hidden !important; }
 .history-panel{border:0;background:transparent;overflow:visible;}
 .history-heading{border:1px solid var(--border);border-radius:16px;background:var(--surface);margin-bottom:12px;}
 @media(max-width:760px){.history-heading{margin-bottom:10px}.history-board{gap:8px}}
+
+/* v14: live stats editor */
+.meta-fields select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit}.meta-fields input:disabled{opacity:.55;cursor:not-allowed}.stats-source-hint{font-size:12px;color:var(--muted);margin-top:-6px;margin-bottom:4px}

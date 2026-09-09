@@ -7,7 +7,7 @@ function slug(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[
 function normalizePlayers(players){
   return (players||[]).map((p,i)=>{
     const stats=p.stats||{};
-    return {...p,id:p.id||slug((p.team||'qb')+'-'+p.name+'-'+i),name:p.name||'Unnamed QB',team:p.team||'',note:p.note||'',headshot:p.headshot||'',stats:{
+    return {...p,id:p.id||slug((p.team||'qb')+'-'+p.name+'-'+i),name:p.name||'Unnamed QB',team:p.team||'',note:p.note||'',headshot:p.headshot||'',statsMode:p.statsMode||'auto',stats:{
       passYards:Number.isFinite(Number(stats.passYards))?Number(stats.passYards):0,
       td:Number.isFinite(Number(stats.td))?Number(stats.td):0,
       int:Number.isFinite(Number(stats.int))?Number(stats.int):0,
@@ -16,6 +16,46 @@ function normalizePlayers(players){
   });
 }
 function normalizeEdition(d){return {...d,players:normalizePlayers(d.players)};}
+
+const LIVE_STATS_URL='https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2026.csv';
+let liveStatsCache=null, liveStatsPromise=null, liveStatsFetchedAt=0;
+function statNum(v){const n=Number(v);return Number.isFinite(n)?n:0;}
+async function loadLiveStats(){
+  if(liveStatsCache && Date.now()-liveStatsFetchedAt<10*60*1000)return liveStatsCache;
+  if(liveStatsPromise)return liveStatsPromise;
+  liveStatsPromise=(async()=>{
+    try{
+      const res=await fetch(LIVE_STATS_URL,{cache:'no-store'});
+      if(!res.ok)throw new Error('live stats request failed: '+res.status);
+      const rows=parseCSV(await res.text());if(!rows.length)throw new Error('empty live stats file');
+      const h=rows[0].map(x=>x.trim());const ix={};h.forEach((name,i)=>ix[name]=i);
+      const needed=['player_display_name','player_id','position','season_type','completions','attempts','passing_yards','passing_tds','passing_interceptions'];
+      if(needed.some(k=>ix[k]===undefined))throw new Error('live stats columns missing');
+      const out={};
+      for(let i=1;i<rows.length;i++){
+        const r=rows[i];if((r[ix.position]||'').trim()!=='QB'||(r[ix.season_type]||'').trim()!=='REG')continue;
+        const name=(r[ix.player_display_name]||'').trim();if(!name)continue;
+        const id=(r[ix.player_id]||'').trim();
+        const key=(id||name).toLowerCase();
+        if(!out[key])out[key]={name,id,passYards:0,td:0,int:0,completions:0,attempts:0};
+        const a=out[key];a.passYards+=statNum(r[ix.passing_yards]);a.td+=statNum(r[ix.passing_tds]);a.int+=statNum(r[ix.passing_interceptions]);a.completions+=statNum(r[ix.completions]);a.attempts+=statNum(r[ix.attempts]);
+      }
+      const byName={};Object.values(out).forEach(a=>{a.compPct=a.attempts?Math.round(a.completions/a.attempts*1000)/10:0;byName[a.name.toLowerCase()]=a;if(a.id)byName[a.id.toLowerCase()]=a;});
+      liveStatsCache=byName;liveStatsFetchedAt=Date.now();return byName;
+    }catch(err){console.warn('Could not load live NFL stats:',err);liveStatsCache={};liveStatsFetchedAt=Date.now();return liveStatsCache;}
+  })();
+  return liveStatsPromise;
+}
+window.qbLoadLiveStats=loadLiveStats;
+function applyLiveStats(players,live){
+  return players.map(p=>{
+    if(p.statsMode==='manual')return p;
+    const canonical=aliases[p.name]||p.name;const a=live[(canonical||'').toLowerCase()]||live[(p.name||'').toLowerCase()];
+    if(!a)return p;
+    return {...p,stats:{passYards:a.passYards,td:a.td,int:a.int,compPct:a.compPct},statsSource:'live'};
+  });
+}
+window.qbApplyLiveStats=applyLiveStats;
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function localSeed(){
   if(!localStorage.getItem(key)) localStorage.setItem(key,JSON.stringify(normalizeEdition(QB_SEED)));
@@ -63,6 +103,8 @@ async function loadPrevious(){
 window.renderHome=async function(){
   const cards=document.getElementById('cards');if(!cards)return;
   let [d,prev]=await Promise.all([loadLatest(),loadPrevious()]);
+  const live=await loadLiveStats();
+  d.players=applyLiveStats(d.players,live);
   d.players=await resolveHeadshots(d.players);document.getElementById('weekLabel').textContent='Week '+d.week;
   document.getElementById('updated').textContent='Updated '+new Date(d.date+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   function draw(){
@@ -97,5 +139,5 @@ window.renderHistory=async function(){
   }
   el.querySelectorAll('.history-tab').forEach(tab=>tab.onclick=()=>showWeek(tab.dataset.week));showWeek(weeks[weeks.length-1].week);
 };
-if(document.getElementById('cards'))window.renderHome();if(document.getElementById('history'))window.renderHistory();
+if(document.getElementById('cards')){window.renderHome();setInterval(()=>{liveStatsCache=null;liveStatsPromise=null;window.renderHome();},10*60*1000);}if(document.getElementById('history'))window.renderHistory();
 })();

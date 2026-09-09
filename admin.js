@@ -11,7 +11,7 @@
     clean();
     document.getElementById('week').value=d.week||1;document.getElementById('date').value=d.date||new Date().toISOString().slice(0,10);
     render();
-    if(window.resolveQBHeadshots){d.players=await window.resolveQBHeadshots(d.players);render();}
+    const live=window.qbLoadLiveStats?await window.qbLoadLiveStats():{};if(window.qbApplyLiveStats)d.players=window.qbApplyLiveStats(d.players,live);if(window.resolveQBHeadshots){d.players=await window.resolveQBHeadshots(d.players);render();}
   }
 
   function render(){
@@ -37,13 +37,13 @@
   }
 
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  document.getElementById('addQB').onclick=()=>{if(d.players.length>=32){alert('The board is limited to 32 quarterbacks. Remove a QB before adding another.');return}d.players.push({id:makeId(),name:'New QB',team:'',note:'',headshot:'',stats:{passYards:0,td:0,int:0,compPct:0}});selected=d.players.length-1;render();const last=document.querySelector('#editorRows .editor-row:last-child .player-name-input');if(last){last.focus();last.select()}};
+  document.getElementById('addQB').onclick=()=>{if(d.players.length>=32){alert('The board is limited to 32 quarterbacks. Remove a QB before adding another.');return}d.players.push({id:makeId(),name:'New QB',team:'',note:'',headshot:'',statsMode:'auto',stats:{passYards:0,td:0,int:0,compPct:0}});selected=d.players.length-1;render();const last=document.querySelector('#editorRows .editor-row:last-child .player-name-input');if(last){last.focus();last.select()}};
   document.getElementById('reset').onclick=()=>{if(!confirm('Reset the editor to the original Top 32 seed? This does not delete anything from Supabase.'))return;d=JSON.parse(JSON.stringify(QB_SEED));selected=0;render()};
   document.getElementById('saveThought').onclick=()=>{if(!d.players[selected])return;d.players[selected].note=document.getElementById('thoughts').value;render()};
-  document.getElementById('saveMeta').onclick=()=>{if(!d.players[selected])return;d.players[selected].name=document.getElementById('metaName').value.trim()||'Unnamed QB';d.players[selected].team=document.getElementById('metaTeam').value.trim().toUpperCase();d.players[selected].headshot=document.getElementById('metaHeadshot').value.trim();render();alert('QB details saved.')};
-  document.getElementById('editorRows').addEventListener('click',()=>{});
+  document.getElementById('saveMeta').onclick=()=>{if(!d.players[selected])return;const p=d.players[selected];p.name=document.getElementById('metaName').value.trim()||'Unnamed QB';p.team=document.getElementById('metaTeam').value.trim().toUpperCase();p.headshot=document.getElementById('metaHeadshot').value.trim();p.statsMode=document.getElementById('statsMode').value;p.stats={passYards:Math.max(0,Number(document.getElementById('statPassYards').value)||0),td:Math.max(0,Number(document.getElementById('statTD').value)||0),int:Math.max(0,Number(document.getElementById('statINT').value)||0),compPct:Math.min(100,Math.max(0,Number(document.getElementById('statCompPct').value)||0))};render();alert('QB details saved.')};
+  document.getElementById('statsMode').addEventListener('change',e=>{const manual=e.target.value==='manual';['statPassYards','statTD','statINT','statCompPct'].forEach(id=>document.getElementById(id).disabled=!manual)});
   const originalRender=render;
-  function syncMeta(){const p=d.players[selected],stats=p?.stats||{};document.getElementById('metaName').value=p?.name||'';document.getElementById('metaTeam').value=p?.team||'';document.getElementById('metaHeadshot').value=p?.headshot||'';document.getElementById('statPassYards').value=stats.passYards??0;document.getElementById('statTD').value=stats.td??0;document.getElementById('statINT').value=stats.int??0;document.getElementById('statCompPct').value=stats.compPct??0}
+  function syncMeta(){const p=d.players[selected],stats=p?.stats||{};document.getElementById('metaName').value=p?.name||'';document.getElementById('metaTeam').value=p?.team||'';document.getElementById('metaHeadshot').value=p?.headshot||'';document.getElementById('statsMode').value=p?.statsMode||'auto';document.getElementById('statPassYards').value=stats.passYards??0;document.getElementById('statTD').value=stats.td??0;document.getElementById('statINT').value=stats.int??0;document.getElementById('statCompPct').value=stats.compPct??0;const manual=(p?.statsMode||'auto')==='manual';['statPassYards','statTD','statINT','statCompPct'].forEach(id=>document.getElementById(id).disabled=!manual)}
   const observer=new MutationObserver(syncMeta);observer.observe(document.getElementById('editorRows'),{childList:true});
   document.getElementById('publish').onclick=async()=>{
     const session=await window.QB_DB?.auth.getSession();if(!session?.data?.session){window.location.replace('login.html');return}
