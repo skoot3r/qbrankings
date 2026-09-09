@@ -1,4 +1,4 @@
-# QB Rankings
+# The QB Board
 
 Clean NFL quarterback rankings site with Supabase-backed publishing and weekly history.
 
