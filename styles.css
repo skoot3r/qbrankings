@@ -159,3 +159,35 @@ body.auth-denied > * { visibility: hidden !important; }
 }
 
 @media (prefers-reduced-motion: reduce){.card .note-wrap,.card .note{transition:none!important}.card .note{transform:none!important}}
+
+/* v18: stronger team-color cards in light mode, keep the softer tint in dark mode */
+html[data-theme="light"] .card[style*="--team-primary"]{
+  background:color-mix(in srgb,var(--team-primary) 88%,#000 12%);
+  border-color:var(--team-primary);
+  border-left-color:var(--team-secondary);
+  box-shadow:0 5px 18px color-mix(in srgb,var(--team-primary) 18%,transparent);
+  color:#fff;
+}
+html[data-theme="light"] .card[style*="--team-primary"] .name,
+html[data-theme="light"] .card[style*="--team-primary"] .team,
+html[data-theme="light"] .card[style*="--team-primary"] .card-stats,
+html[data-theme="light"] .card[style*="--team-primary"] .card-stats b,
+html[data-theme="light"] .card[style*="--team-primary"] .card-stats small,
+html[data-theme="light"] .card[style*="--team-primary"] .note{
+  color:#fff;
+}
+html[data-theme="light"] .card[style*="--team-primary"] .team,
+html[data-theme="light"] .card[style*="--team-primary"] .card-stats small{
+  opacity:.86;
+}
+html[data-theme="light"] .card[style*="--team-primary"] .rank{color:#fff;}
+html[data-theme="light"] .card[style*="--team-primary"] .movement.same{color:rgba(255,255,255,.78);}
+html[data-theme="light"] .card[style*="--team-primary"] .movement.up,
+html[data-theme="light"] .card[style*="--team-primary"] .movement.down{color:#fff;}
+html[data-theme="light"] .card[style*="--team-primary"] .card-stats span{border-left-color:rgba(255,255,255,.25);}
+html[data-theme="light"] .card[style*="--team-primary"] .note{border-top-color:rgba(255,255,255,.25);}
+html[data-theme="light"] .card[style*="--team-primary"]:hover{
+  background:color-mix(in srgb,var(--team-primary) 94%,#000 6%);
+  border-color:var(--team-secondary);
+  box-shadow:0 7px 22px color-mix(in srgb,var(--team-primary) 24%,transparent);
+}
