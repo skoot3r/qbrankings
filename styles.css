@@ -119,3 +119,10 @@ body.auth-denied > * { visibility: hidden !important; }
   .card-stats small{font-size:9px}
   .card .note{grid-column:1 / -1;grid-row:3}
 }
+
+/* v13: history uses the same expandable ranking cards as the home page */
+.history-board{display:flex;flex-direction:column;gap:9px;padding:0;}
+.history-board .card{margin:0;}
+.history-panel{border:0;background:transparent;overflow:visible;}
+.history-heading{border:1px solid var(--border);border-radius:16px;background:var(--surface);margin-bottom:12px;}
+@media(max-width:760px){.history-heading{margin-bottom:10px}.history-board{gap:8px}}
