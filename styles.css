@@ -100,10 +100,12 @@ body.auth-denied > * { visibility: hidden !important; }
 .card-stats small{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.04em}
 .card .name-line{display:block}
 .card .team{margin-top:3px}
-.card .note{grid-column:3 / 5;grid-row:2;display:none;margin:4px 0 0;padding:11px 0 2px;border-top:1px solid var(--line);max-width:none;text-align:left;font-size:13px;line-height:1.55}
+.card .note-wrap{grid-column:3 / 5;grid-row:2;display:grid;grid-template-rows:0fr;min-height:0;transition:grid-template-rows .42s cubic-bezier(.22,.61,.36,1)}
+.card .note{min-height:0;overflow:hidden;margin:4px 0 0;padding:11px 0 2px;border-top:1px solid var(--line);max-width:none;text-align:left;font-size:13px;line-height:1.55;opacity:0;transform:translateY(-5px);transition:opacity .24s ease,transform .42s cubic-bezier(.22,.61,.36,1)}
 .card.expanded{padding-bottom:15px}
-.card.expanded .note{display:block}
-.card.expanded .note:before{content:'NOTE';display:block;font-size:10px;font-weight:900;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.card.expanded .note-wrap{grid-template-rows:1fr}
+.card.expanded .note{opacity:1;transform:translateY(0)}
+.card .note:before{content:'NOTE';display:block;font-size:10px;font-weight:900;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
 @media(max-width:900px){
   .card{grid-template-columns:48px 48px minmax(180px,1fr) minmax(280px,360px);gap:12px}
   .card-stats span{min-width:62px;padding-left:9px}
@@ -117,7 +119,7 @@ body.auth-denied > * { visibility: hidden !important; }
   .card-stats span:first-child{padding-left:0}
   .card-stats b{font-size:13px}
   .card-stats small{font-size:9px}
-  .card .note{grid-column:1 / -1;grid-row:3}
+  .card .note-wrap{grid-column:1 / -1;grid-row:auto}
 }
 
 /* v13: history uses the same expandable ranking cards as the home page */
@@ -155,3 +157,5 @@ body.auth-denied > * { visibility: hidden !important; }
 @media(max-width:760px){
   .card[style*="--team-primary"]{border-left-width:4px;}
 }
+
+@media (prefers-reduced-motion: reduce){.card .note-wrap,.card .note{transition:none!important}.card .note{transform:none!important}}
