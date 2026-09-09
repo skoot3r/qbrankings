@@ -437,3 +437,60 @@ html[data-theme="light"] .card[style*="--team-primary"] .team-logo{filter:drop-s
   .card .note-cell{grid-column:1 / -1;grid-row:3;border-top:1px solid rgba(255,255,255,.18);padding:0 4px;min-height:0}
   .card.expanded .note-cell{padding-top:8px;padding-bottom:6px}
 }
+
+/* v22: subtle full-page football/playbook background overlay */
+body{position:relative;isolation:isolate;background:var(--bg);overflow-x:hidden}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 8% 18%, color-mix(in srgb,#168cff 10%,transparent) 0, transparent 24%),
+    radial-gradient(circle at 91% 78%, color-mix(in srgb,#5d42ff 8%,transparent) 0, transparent 25%),
+    linear-gradient(135deg, transparent 0 43%, color-mix(in srgb,#ffffff 3%,transparent) 43.1% 43.35%, transparent 43.45% 100%),
+    linear-gradient(45deg, transparent 0 62%, color-mix(in srgb,#ffffff 2.5%,transparent) 62.1% 62.3%, transparent 62.4% 100%),
+    repeating-linear-gradient(90deg, transparent 0 118px, color-mix(in srgb,#ffffff 1.8%,transparent) 118px 119px),
+    repeating-linear-gradient(0deg, transparent 0 118px, color-mix(in srgb,#ffffff 1.5%,transparent) 118px 119px),
+    var(--bg);
+  opacity:.9;
+}
+body::after{
+  content:"";
+  position:fixed;
+  width:760px;
+  height:760px;
+  right:-260px;
+  top:70px;
+  z-index:-1;
+  pointer-events:none;
+  border:1px solid color-mix(in srgb,#ffffff 5%,transparent);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 72px color-mix(in srgb,#ffffff 1.5%,transparent),
+    0 0 0 144px color-mix(in srgb,#ffffff 1%,transparent);
+  transform:rotate(-18deg);
+  opacity:.65;
+}
+main,footer{position:relative;z-index:0}
+header{background:color-mix(in srgb,var(--bg) 78%,transparent)}
+footer{background:color-mix(in srgb,var(--bg) 58%,transparent)}
+
+html[data-theme="light"] body::before{
+  background:
+    radial-gradient(circle at 8% 18%, color-mix(in srgb,#168cff 6%,transparent) 0, transparent 24%),
+    radial-gradient(circle at 91% 78%, color-mix(in srgb,#5d42ff 5%,transparent) 0, transparent 25%),
+    linear-gradient(135deg, transparent 0 43%, color-mix(in srgb,#0b1728 3%,transparent) 43.1% 43.35%, transparent 43.45% 100%),
+    linear-gradient(45deg, transparent 0 62%, color-mix(in srgb,#0b1728 2.5%,transparent) 62.1% 62.3%, transparent 62.4% 100%),
+    repeating-linear-gradient(90deg, transparent 0 118px, color-mix(in srgb,#0b1728 2%,transparent) 118px 119px),
+    repeating-linear-gradient(0deg, transparent 0 118px, color-mix(in srgb,#0b1728 1.6%,transparent) 118px 119px),
+    var(--bg);
+  opacity:.9;
+}
+html[data-theme="light"] body::after{border-color:color-mix(in srgb,#0b1728 5%,transparent);box-shadow:0 0 0 72px color-mix(in srgb,#0b1728 1.5%,transparent),0 0 0 144px color-mix(in srgb,#0b1728 1%,transparent)}
+
+@media(max-width:700px){
+  body::after{width:500px;height:500px;right:-300px;top:180px}
+  body::before{background-size:auto,auto,auto,auto,96px 96px,96px 96px,auto}
+}
