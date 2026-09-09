@@ -145,7 +145,7 @@ body.auth-denied > * { visibility: hidden !important; }
   border-color:color-mix(in srgb,var(--team-primary) 55%,var(--line));
   box-shadow:0 6px 20px color-mix(in srgb,var(--team-primary) 12%,transparent),var(--shadow);
 }
-.card[style*="--team-primary"] .rank{color:var(--team-primary);}
+.card[style*="--team-primary"] .rank{color:#fff;}
 .card[style*="--team-primary"] .movement.same{color:color-mix(in srgb,var(--team-primary) 65%,var(--muted));}
 .card[style*="--team-primary"] .team{font-weight:800;color:color-mix(in srgb,var(--team-primary) 72%,var(--muted));}
 .card[style*="--team-primary"] .card-stats span{border-left-color:color-mix(in srgb,var(--team-primary) 22%,var(--line));}
