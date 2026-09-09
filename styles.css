@@ -129,3 +129,29 @@ body.auth-denied > * { visibility: hidden !important; }
 
 /* v14: live stats editor */
 .meta-fields select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit}.meta-fields input:disabled{opacity:.55;cursor:not-allowed}.stats-source-hint{font-size:12px;color:var(--muted);margin-top:-6px;margin-bottom:4px}
+
+/* v15: subtle NFL team-color cards */
+.card[style*="--team-primary"]{
+  background:
+    linear-gradient(100deg,
+      color-mix(in srgb,var(--team-primary) 14%,var(--panel)) 0%,
+      color-mix(in srgb,var(--team-primary) 6%,var(--panel)) 34%,
+      color-mix(in srgb,var(--team-secondary) 4%,var(--panel)) 100%);
+  border-color:color-mix(in srgb,var(--team-primary) 35%,var(--line));
+  border-left:5px solid var(--team-primary);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--team-secondary) 10%,transparent),var(--shadow);
+}
+.card[style*="--team-primary"]:hover{
+  border-color:color-mix(in srgb,var(--team-primary) 55%,var(--line));
+  box-shadow:0 6px 20px color-mix(in srgb,var(--team-primary) 12%,transparent),var(--shadow);
+}
+.card[style*="--team-primary"] .rank{color:var(--team-primary);}
+.card[style*="--team-primary"] .movement.same{color:color-mix(in srgb,var(--team-primary) 65%,var(--muted));}
+.card[style*="--team-primary"] .team{font-weight:800;color:color-mix(in srgb,var(--team-primary) 72%,var(--muted));}
+.card[style*="--team-primary"] .card-stats span{border-left-color:color-mix(in srgb,var(--team-primary) 22%,var(--line));}
+.card[style*="--team-primary"] .card-stats b{color:var(--text);}
+.card[style*="--team-primary"] .note{border-top-color:color-mix(in srgb,var(--team-primary) 25%,var(--line));}
+
+@media(max-width:760px){
+  .card[style*="--team-primary"]{border-left-width:4px;}
+}
